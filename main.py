@@ -15,6 +15,8 @@ pygame.display.set_caption("HUD - Imagem no Canto Inferior Esquerdo")
 imagem_cursor_original = pygame.image.load(r'C:\Users\joaoj\OneDrive\Documentos\GitHub\Chick-Hunger\Assets\mira.png')
 tamanho_novo_cursor = (40, 40)  # Defina o tamanho desejado para o cursor
 imagem_cursor = pygame.transform.scale(imagem_cursor_original, tamanho_novo_cursor)
+
+imagem_cursor_rect = imagem_cursor.get_rect()
 pygame.mouse.set_visible(False)  # Torna o cursor padrão invisível
 
 # Carrega a imagem do HUD
@@ -152,7 +154,7 @@ while True:
         grupo_galinhas.draw(tela)
 
         # Desenha o cursor
-        tela.blit(imagem_cursor, pygame.mouse.get_pos())
+        tela.blit(imagem_cursor, imagem_cursor_rect)
 
         # Desenha o HUD
         tela.blit(imagem_hud, posicao_hud)
@@ -164,6 +166,8 @@ while True:
 
         # Desenha o texto na tela
         desenhar_texto()
+
+        imagem_cursor_rect.center = pygame.mouse.get_pos()
 
         tempo_atual = time.time()
 
