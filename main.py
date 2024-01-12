@@ -64,8 +64,9 @@ grupo_galinhas = pygame.sprite.Group()
 class Galinha(pygame.sprite.Sprite):
     def __init__(self, x, y, velocidade):
         super().__init__()
-        self.image = pygame.Surface((50, 50))
-        self.image.fill((255, 0, 0))  # Cor vermelha para representar as galinhas
+        self.image_original = pygame.image.load(r'C:\Users\joaoj\OneDrive\Documentos\GitHub\Chick-Hunger\Assets\galinha.png')
+        self.image_original = pygame.transform.scale(self.image_original, (50, 50))
+        self.image = self.image_original  # Imagem inicial
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
@@ -77,14 +78,19 @@ class Galinha(pygame.sprite.Sprite):
             # Remove a galinha se ela sair da tela
             self.rect.y += 200
             self.velocidade *= -1
-            print(self.rect.y)
 
         if (self.rect.y > 600):
             global vida
             vida -= 1
             print('perdeu')
-
             self.kill()
+        print(self.rect.x)
+        if self.velocidade < 0:
+            # Galinha está indo para a esquerda
+            self.image = pygame.transform.flip(self.image_original, True, False)
+        else:
+            # Galinha está indo para a direita
+            self.image = self.image_original
 
 def desenhar_texto():
     municao_texto = fonte.render(f"Munição: {municao}", True, (255, 255, 255))
@@ -98,12 +104,12 @@ def desenhar_texto():
 
 # Função para gerar galinhas
 def gerar_galinha():
-    lado = random.choice(["esquerda","direita"])  # Escolhe aleatoriamente entre esquerda e direita
-    if lado == "esquerda":
-        x = largura  # Inicia a galinha à direita da tela
+    lado = random.choice(["direita","esquerda"])  # Escolhe aleatoriamente entre esquerda e direita
+    if lado == "direita":
+        x = largura# Inicia a galinha à direita da tela
         velocidade = random.randint(-5, -1)  # Velocidade aleatória da direita para a esquerda
     else:
-        x = 0  # Inicia a galinha à esquerda da tela
+        x = -40 # Inicia a galinha à esquerda da tela
         velocidade = random.randint(1, 5)  # Velocidade aleatória da esquerda para a direita
 
     y = 200  # Altura aleatória dentro da tela
@@ -146,7 +152,7 @@ while True:
 
 
         # Cria uma nova galinha ocasionalmente
-        if random.randint(0, 100) < 5:
+        if random.randint(0, 100) < 1:
             galinha = gerar_galinha()
             grupo_galinhas.add(galinha)
 
