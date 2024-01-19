@@ -11,8 +11,17 @@ altura = 720
 tela = pygame.display.set_mode((largura, altura))
 pygame.display.set_caption("HUD - Imagem no Canto Inferior Esquerdo")
 
+galinha_spritesheet = pygame.image.load('Assets/galinha_spritesheet.png')
+largura_frame, altura_frame = galinha_spritesheet.get_size()
+frame_width = largura_frame // 3  # 3 frames na spritesheet
+frame_height = altura_frame
+
+# Separa os frames da spritesheet
+frames_galinha = [galinha_spritesheet.subsurface((i * frame_width, 0, frame_width, frame_height)) for i in range(3)]
+frames_galinha = [pygame.transform.scale(frame, (55, 55)) for frame in frames_galinha]
+
 # Carrega a imagem do cursor
-imagem_cursor_original = pygame.image.load(r'C:\Users\joaoj\OneDrive\Documentos\GitHub\Chick-Hunger\Assets\mira.png')
+imagem_cursor_original = pygame.image.load('Assets/mira.png')
 tamanho_novo_cursor = (40, 40)  # Defina o tamanho desejado para o cursor
 imagem_cursor = pygame.transform.scale(imagem_cursor_original, tamanho_novo_cursor)
 
@@ -20,7 +29,7 @@ imagem_cursor_rect = imagem_cursor.get_rect()
 pygame.mouse.set_visible(False)  # Torna o cursor padrão invisível
 
 # Carrega a imagem do HUD
-imagem_hud_original = pygame.image.load(r'C:\Users\joaoj\OneDrive\Documentos\GitHub\Chick-Hunger\Assets\estilingue.jpeg')
+imagem_hud_original = pygame.image.load('Assets/estilingue.jpeg')
 largura_hud_original, altura_hud_original = imagem_hud_original.get_size()
 
 # Ajusta o tamanho da imagem do HUD mantendo a proporção original
@@ -30,11 +39,11 @@ nova_largura_hud = int(nova_altura_hud * razao_aspecto_hud)
 imagem_hud = pygame.transform.scale(imagem_hud_original, (nova_largura_hud, nova_altura_hud))
 
 # Carrega a imagem de fundo
-imagem_fundo = pygame.image.load(r'C:\Users\joaoj\OneDrive\Documentos\GitHub\Chick-Hunger\Assets\brick wall.png')
+imagem_fundo = pygame.image.load('Assets/fundo2.png')
 imagem_fundo = pygame.transform.scale(imagem_fundo, (largura, altura))
 
 # Carrega a imagem para o canto superior direito
-imagem_canto_superior_direito = pygame.image.load(r'C:\Users\joaoj\OneDrive\Documentos\GitHub\Chick-Hunger\Assets\gato_olhando_para_baixo.png')
+imagem_canto_superior_direito = pygame.image.load('Assets/gato_olhando_para_baixo.png')
 tamanho_imagem_canto_superior_direito = (150, 150)  # Defina o tamanho desejado para a imagem
 imagem_canto_superior_direito = pygame.transform.scale(imagem_canto_superior_direito, tamanho_imagem_canto_superior_direito)
 posicao_canto_superior_direito = (largura - tamanho_imagem_canto_superior_direito[0] - 10, 10)
@@ -64,13 +73,15 @@ grupo_galinhas = pygame.sprite.Group()
 class Galinha(pygame.sprite.Sprite):
     def __init__(self, x, y, velocidade):
         super().__init__()
-        self.image_original = pygame.image.load(r'C:\Users\joaoj\OneDrive\Documentos\GitHub\Chick-Hunger\Assets\galinha.png')
-        self.image_original = pygame.transform.scale(self.image_original, (50, 50))
-        self.image = self.image_original  # Imagem inicial
+        self.frames = frames_galinha  # Lista de frames da animação
+        self.frame_atual = 0  # Índice do frame atual
+        self.image = self.frames[self.frame_atual]
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
         self.velocidade = velocidade
+        self.tempo_frame = 0.2  # Tempo de exibição de cada frame em segundos
+        self.tempo_anterior = time.time()
 
     def update(self):
         self.rect.x += self.velocidade
@@ -86,11 +97,14 @@ class Galinha(pygame.sprite.Sprite):
             self.kill()
         print(self.rect.x)
         if self.velocidade < 0:
-            # Galinha está indo para a esquerda
-            self.image = pygame.transform.flip(self.image_original, True, False)
+            self.image = pygame.transform.flip(self.frames[self.frame_atual], True, False)
         else:
-            # Galinha está indo para a direita
-            self.image = self.image_original
+            self.image = self.frames[self.frame_atual]
+
+        tempo_atual = time.time()
+        if tempo_atual - self.tempo_anterior > self.tempo_frame:
+            self.frame_atual = (self.frame_atual + 1) % len(self.frames)
+            self.tempo_anterior = tempo_atual
 
 def desenhar_texto():
     municao_texto = fonte.render(f"Munição: {municao}", True, (255, 255, 255))
@@ -100,7 +114,7 @@ def desenhar_texto():
     tela.blit(pontuacao_texto, (largura - 1200, altura - 680))
 
     vida_texto = fonte.render(f"Vida: {vida}", True, (255, 255, 255))
-    tela.blit(vida_texto, (largura - 1200, altura - 600))
+    tela.blit(vida_texto, (largura - 1200, altura - 630))
 
 # Função para gerar galinhas
 def gerar_galinha():
