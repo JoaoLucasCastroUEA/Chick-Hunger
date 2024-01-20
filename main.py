@@ -20,6 +20,25 @@ frame_height = altura_frame
 frames_galinha = [galinha_spritesheet.subsurface((i * frame_width, 0, frame_width, frame_height)) for i in range(3)]
 frames_galinha = [pygame.transform.scale(frame, (55, 55)) for frame in frames_galinha]
 
+# Carregamento da spritesheet do gato
+gato_spritesheet = pygame.image.load('Assets/gato_spritesheet.png')
+frame_width_gato = gato_spritesheet.get_width() // 4
+frame_height_gato = gato_spritesheet.get_height()
+
+# Função para extrair frames da spritesheet do gato
+def get_frames_gato():
+    frames_gato = []
+    for i in range(4):
+        frame_gato = gato_spritesheet.subsurface((i * frame_width_gato, 0, frame_width_gato, frame_height_gato))
+        frames_gato.append(frame_gato)
+    return frames_gato
+
+# Carregamento dos frames do gato
+frames_gato = get_frames_gato()
+current_frame_gato = 0
+frame_change_counter_gato = 0
+frame_change_threshold_gato = 13
+
 # Carrega a imagem do cursor
 imagem_cursor_original = pygame.image.load('Assets/mira.png')
 tamanho_novo_cursor = (40, 40)  # Defina o tamanho desejado para o cursor
@@ -29,7 +48,7 @@ imagem_cursor_rect = imagem_cursor.get_rect()
 pygame.mouse.set_visible(False)  # Torna o cursor padrão invisível
 
 # Carrega a imagem do HUD
-imagem_hud_original = pygame.image.load('Assets/estilingue.jpeg')
+imagem_hud_original = pygame.image.load('Assets/estilingue_1.png')
 largura_hud_original, altura_hud_original = imagem_hud_original.get_size()
 
 # Ajusta o tamanho da imagem do HUD mantendo a proporção original
@@ -43,10 +62,10 @@ imagem_fundo = pygame.image.load('Assets/fundo2.png')
 imagem_fundo = pygame.transform.scale(imagem_fundo, (largura, altura))
 
 # Carrega a imagem para o canto superior direito
-imagem_canto_superior_direito = pygame.image.load('Assets/gato_olhando_para_baixo.png')
-tamanho_imagem_canto_superior_direito = (150, 150)  # Defina o tamanho desejado para a imagem
-imagem_canto_superior_direito = pygame.transform.scale(imagem_canto_superior_direito, tamanho_imagem_canto_superior_direito)
-posicao_canto_superior_direito = (largura - tamanho_imagem_canto_superior_direito[0] - 10, 10)
+# imagem_canto_superior_direito = pygame.image.load('Assets/gato_olhando_para_baixo.png')
+# tamanho_imagem_canto_superior_direito = (150, 150)  # Defina o tamanho desejado para a imagem
+# imagem_canto_superior_direito = pygame.transform.scale(imagem_canto_superior_direito, tamanho_imagem_canto_superior_direito)
+# posicao_canto_superior_direito = (largura - frame_width_gato * 5 - 10, 10 - 10, 10)
 
 # Calcula a posição para o canto inferior esquerdo
 posicao_hud = (10, altura - nova_altura_hud - 10)
@@ -181,9 +200,10 @@ while True:
 
         fps = clock.get_fps()
         print(f"FPS: {fps}")
-        # Desenha a imagem no canto superior direito
-        tela.blit(imagem_canto_superior_direito, posicao_canto_superior_direito)
 
+        # Desenha a imagem no canto superior direito
+        tela.blit(pygame.transform.scale(frames_gato[current_frame_gato], (int(frame_width_gato * 4.7), int(frame_height_gato * 4.7))),
+                  (largura - int(frame_width_gato * 4.7) - 150, 0))
         # Desenha o texto na tela
         desenhar_texto()
 
@@ -202,7 +222,11 @@ while True:
         pygame.draw.rect(tela, (0, 0, 0), (0, 450, 1280, 10))
         pygame.draw.rect(tela, (0, 0, 0), (0, 650, 1280, 10))
 
-
+        # Atualiza a animação do gato
+        frame_change_counter_gato += 1
+        if frame_change_counter_gato >= frame_change_threshold_gato:
+            current_frame_gato = (current_frame_gato + 1) % 4
+            frame_change_counter_gato = 0
 
 
 # Se a vida acabar entrar na tela de gameover
