@@ -5,284 +5,257 @@ import pygame
 
 pygame.init()
 
-# Configurações da janela
-largura = 1280
-altura = 720
-tela = pygame.display.set_mode((largura, altura))
-pygame.display.set_caption("HUD - Imagem no Canto Inferior Esquerdo")
+# Screen settings
+WIDTH = 1280
+HEIGHT = 720
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("HUD - Image in the Bottom Left Corner")
 
-galinha_spritesheet = pygame.image.load('Assets/galinha_spritesheet.png')
-largura_frame, altura_frame = galinha_spritesheet.get_size()
-frame_width = largura_frame // 3  # 3 frames na spritesheet
-frame_height = altura_frame
+# Chicken spritesheet
+chicken_spritesheet = pygame.image.load('Assets/chicken_spritesheet.png')
+frame_width, frame_height = chicken_spritesheet.get_size()
+frame_width = frame_width // 3  # 3 frames in the spritesheet
+frame_height = frame_height
 
-# Separa os frames da spritesheet
-frames_galinha = [galinha_spritesheet.subsurface((i * frame_width, 0, frame_width, frame_height)) for i in range(3)]
-frames_galinha = [pygame.transform.scale(frame, (55, 55)) for frame in frames_galinha]
+# Separate frames from the spritesheet
+chicken_frames = [chicken_spritesheet.subsurface((i * frame_width, 0, frame_width, frame_height)) for i in range(3)]
+chicken_frames = [pygame.transform.scale(frame, (55, 55)) for frame in chicken_frames]
 
-# Carregamento da spritesheet do gato
-gato_spritesheet = pygame.image.load('Assets/gato_spritesheet.png')
-frame_width_gato = gato_spritesheet.get_width() // 4
-frame_height_gato = gato_spritesheet.get_height()
+# Load cat spritesheet
+cat_spritesheet = pygame.image.load('Assets/cat_spritesheet.png')
+frame_width_cat = cat_spritesheet.get_width() // 4
+frame_height_cat = cat_spritesheet.get_height()
 
-# Função para extrair frames da spritesheet do gato
-def get_frames_gato():
-    frames_gato = []
+
+# Function to extract frames from the cat spritesheet
+def get_frames_cat():
+    frames_cat = []
     for i in range(4):
-        frame_gato = gato_spritesheet.subsurface((i * frame_width_gato, 0, frame_width_gato, frame_height_gato))
-        frames_gato.append(frame_gato)
-    return frames_gato
+        frame_cat = cat_spritesheet.subsurface((i * frame_width_cat, 0, frame_width_cat, frame_height_cat))
+        frames_cat.append(frame_cat)
+    return frames_cat
 
-# Carregamento dos frames do gato
-frames_gato = get_frames_gato()
-current_frame_gato = 0
-frame_change_counter_gato = 0
-frame_change_threshold_gato = 13
 
-# Carrega a imagem do cursor
-imagem_cursor_original = pygame.image.load('Assets/mira_decente.png')
-tamanho_novo_cursor = (40, 40)  # Defina o tamanho desejado para o cursor
-imagem_cursor = pygame.transform.scale(imagem_cursor_original, tamanho_novo_cursor)
+# Load cat frames
+frames_cat = get_frames_cat()
+current_frame_cat = 0
+frame_change_counter_cat = 0
+frame_change_threshold_cat = 13
 
-imagem_cursor_rect = imagem_cursor.get_rect()
-pygame.mouse.set_visible(False)  # Torna o cursor padrão invisível
+# Load cursor image
+original_cursor_image = pygame.image.load('Assets/decent_sight.png')
+new_cursor_size = (40, 40)
+cursor_image = pygame.transform.scale(original_cursor_image, new_cursor_size)
 
-# Carrega a imagem do HUD
-imagem_hud_original = pygame.image.load('Assets/estilingue_1_copia.png')
-largura_hud_original, altura_hud_original = imagem_hud_original.get_size()
+cursor_image_rect = cursor_image.get_rect()
+pygame.mouse.set_visible(False)
 
-# Ajusta o tamanho da imagem do HUD mantendo a proporção original
-razao_aspecto_hud = largura_hud_original / altura_hud_original
-nova_altura_hud = int(tamanho_novo_cursor[1] * 1.5)  # Ajuste a altura conforme necessário
-nova_largura_hud = int(nova_altura_hud * razao_aspecto_hud)
-imagem_hud = pygame.transform.scale(imagem_hud_original, (nova_largura_hud, nova_altura_hud))
+# Load HUD image
+original_hud_image = pygame.image.load('Assets/slingshot_1_copy.png')
+original_hud_width, original_hud_height = original_hud_image.get_size()
 
-# Carrega a imagem de fundo
-imagem_fundo = pygame.image.load('Assets/fundo2.png')
-imagem_fundo = pygame.transform.scale(imagem_fundo, (largura, altura))
+# Adjust HUD image size while maintaining the original aspect ratio
+hud_aspect_ratio = original_hud_width / original_hud_height
+new_hud_height = int(new_cursor_size[1] * 1.5)
+new_hud_width = int(new_hud_height * hud_aspect_ratio)
+hud_image = pygame.transform.scale(original_hud_image, (new_hud_width, new_hud_height))
 
-# Carrega a imagem para o canto superior direito
-# imagem_canto_superior_direito = pygame.image.load('Assets/gato_olhando_para_baixo.png')
-# tamanho_imagem_canto_superior_direito = (150, 150)  # Defina o tamanho desejado para a imagem
-# imagem_canto_superior_direito = pygame.transform.scale(imagem_canto_superior_direito, tamanho_imagem_canto_superior_direito)
-# posicao_canto_superior_direito = (largura - frame_width_gato * 5 - 10, 10 - 10, 10)
+# Load background image
+background_image = pygame.image.load('Assets/background2.png')
+background_image = pygame.transform.scale(background_image, (WIDTH, HEIGHT))
 
-# Calcula a posição para o canto inferior esquerdo
-posicao_hud = (10, altura - nova_altura_hud - 10)
+# Calculate position for the bottom left corner
+hud_position = (10, HEIGHT - new_hud_height - 10)
 
-# Configuração do relógio
+# Clock setup
 clock = pygame.time.Clock()
 
-# Munição
-fonte = pygame.font.Font(None, 36)
+# Ammunition
+font = pygame.font.Font(None, 36)
 
-# Inicializa o valor do texto
-municao = 10
-pontuacao = 0
-vida = 3
+# Initialize text values
+ammunition = 10
+score = 0
+life = 3
 game_over = 'Game Over'
-# Inicializa o tempo anterior
-tempo_anterior = time.time()
-tempo_atual = time.time()
 
-# Inicializa o tempo de spawn das galinhas
-tempo_atual_galinhas = time.time()
-tempo_anterior_galinhas = time.time()
+# Initialize previous time
+previous_time = time.time()
+current_time = time.time()
 
-# Grupo de sprites para as galinhas
-grupo_galinhas = pygame.sprite.Group()
+# Initialize chicken spawn time
+current_time_chickens = time.time()
+previous_time_chickens = time.time()
 
-probabilidade_spawn = 1
+# Sprite group for chickens
+chicken_group = pygame.sprite.Group()
 
-# Classe para representar as galinhas
-class Galinha(pygame.sprite.Sprite):
-    def __init__(self, x, y, velocidade):
+spawn_probability = 1
+
+
+# Class to represent chickens
+class Chicken(pygame.sprite.Sprite):
+    def __init__(self, x, y, speed):
         super().__init__()
-        self.frames = frames_galinha  # Lista de frames da animação
-        self.frame_atual = 0  # Índice do frame atual
-        self.image = self.frames[self.frame_atual]
+        self.frames = chicken_frames
+        self.current_frame = 0
+        self.image = self.frames[self.current_frame]
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
-        self.velocidade = velocidade
-        self.tempo_frame = 0.2  # Tempo de exibição de cada frame em segundos
-        self.tempo_anterior = time.time()
+        self.speed = speed
+        self.frame_time = 0.2
+        self.previous_time = time.time()
 
     def update(self):
-        self.rect.x += self.velocidade
-        if (self.velocidade < 0 and self.rect.right < 0) or (self.velocidade > 0 and self.rect.left > largura):
-            # Remove a galinha se ela sair da tela
+        self.rect.x += self.speed
+        if (self.speed < 0 and self.rect.right < 0) or (self.speed > 0 and self.rect.left > WIDTH):
             self.rect.y += 200
-            self.velocidade *= -1
+            self.speed *= -1
 
-        if (self.rect.y > 600):
-            global vida
-            vida -= 1
+        if self.rect.y > 600:
+            global life
+            life -= 1
             self.kill()
-        if self.velocidade < 0:
-            self.image = pygame.transform.flip(self.frames[self.frame_atual], True, False)
+        if self.speed < 0:
+            self.image = pygame.transform.flip(self.frames[self.current_frame], True, False)
         else:
-            self.image = self.frames[self.frame_atual]
+            self.image = self.frames[self.current_frame]
 
-        tempo_atual = time.time()
-        if tempo_atual - self.tempo_anterior > self.tempo_frame:
-            self.frame_atual = (self.frame_atual + 1) % len(self.frames)
-            self.tempo_anterior = tempo_atual
-
-
-def desenhar_texto():
-    municao_texto = fonte.render(f"Munição: {municao}", True, (255, 255, 255))
-
-    # Ajusta as coordenadas para posicionar o texto ao lado do estilingue
-    x_municao = posicao_hud[0] + nova_largura_hud + 10
-    y_municao = posicao_hud[1] + 20  # Ajuste este valor conforme necessário para descer o texto
-    tela.blit(municao_texto, (x_municao, y_municao))
-
-    pontuacao_texto = fonte.render(f"Pontuação: {pontuacao}", True, (255, 255, 255))
-    tela.blit(pontuacao_texto, (largura - 1200, altura - 680))
-
-    vida_texto = fonte.render(f"Vida: {vida}", True, (255, 255, 255))
-    tela.blit(vida_texto, (largura - 1200, altura - 630))
+        current_time = time.time()
+        if current_time - self.previous_time > self.frame_time:
+            self.current_frame = (self.current_frame + 1) % len(self.frames)
+            self.previous_time = current_time
 
 
-# Função para gerar galinhas
-def gerar_galinha():
-    lado = random.choice(["direita","esquerda"])  # Escolhe aleatoriamente entre esquerda e direita
-    if lado == "direita":
-        x = largura# Inicia a galinha à direita da tela
-        velocidade = random.randint(-5, -1)  # Velocidade aleatória da direita para a esquerda
+def draw_text():
+    ammunition_text = font.render(f"Ammunition: {ammunition}", True, (255, 255, 255))
+
+    x_ammunition = hud_position[0] + new_hud_width + 10
+    y_ammunition = hud_position[1] + 20
+    screen.blit(ammunition_text, (x_ammunition, y_ammunition))
+
+    score_text = font.render(f"Score: {score}", True, (255, 255, 255))
+    screen.blit(score_text, (WIDTH - 1200, HEIGHT - 680))
+
+    life_text = font.render(f"Life: {life}", True, (255, 255, 255))
+    screen.blit(life_text, (WIDTH - 1200, HEIGHT - 630))
+
+
+# Function to generate chickens
+def generate_chicken():
+    side = random.choice(["right", "left"])
+    if side == "right":
+        x = WIDTH
+        speed = random.randint(-5, -1)
     else:
-        x = -40 # Inicia a galinha à esquerda da tela
-        velocidade = random.randint(1, 5)  # Velocidade aleatória da esquerda para a direita
+        x = -40
+        speed = random.randint(1, 5)
 
-    y = 200  # Altura aleatória dentro da tela
-    return Galinha(x, y, velocidade)
+    y = 200
+    return Chicken(x, y, speed)
 
-# Função para detectar clique em uma galinha
-def verificar_clique_galinha(posicao):
-    global municao  # Indica que estamos usando a variável global valor_texto
-    global pontuacao
 
-    galinhas_clicadas = [galinha for galinha in grupo_galinhas if galinha.rect.collidepoint(posicao)]
+# Function to check click on a chicken
+def check_click_chicken(position):
+    global ammunition
+    global score
 
-    for galinha in galinhas_clicadas:
-        if municao == 0:
+    clicked_chickens = [chicken for chicken in chicken_group if chicken.rect.collidepoint(position)]
+
+    for chicken in clicked_chickens:
+        if ammunition == 0:
             break
-        galinha.kill()  # Remove a galinha do grupo
-        pontuacao += 1 # Aumenta a Pontuação
-        municao -= 1  # Diminui o valor do texto
+        chicken.kill()
+        score += 1
+        ammunition -= 1
 
 
-# Loop principal
+# Main loop
 while True:
-    # Vê os inputs do jogador
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
 
-        # Verifica clique do botão esquerdo do mouse
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            # Só chama verificar clique se tiver munição
-            if municao > 0:
-                verificar_clique_galinha(event.pos)
+            if ammunition > 0:
+                check_click_chicken(event.pos)
 
         if event.type == pygame.KEYDOWN:
-
             if event.key == pygame.K_r:
-                if vida <= 0:
-                    vida = 3
-                    municao = 10
-                    probabilidade_spawn = 1
-                    pontuacao = 0
-                    tempo_anterior_galinhas = time.time()
-                    tempo_atual_galinhas = time.time()
-                    tempo_anterior = time.time()
-                    tempo_atual =  time.time()
-                    for galinha in grupo_galinhas:
-                        galinha.kill()
+                if life <= 0:
+                    life = 3
+                    ammunition = 10
+                    spawn_probability = 1
+                    score = 0
+                    previous_time_chickens = time.time()
+                    current_time_chickens = time.time()
+                    previous_time = time.time()
+                    current_time = time.time()
+                    for chicken in chicken_group:
+                        chicken.kill()
 
-    if vida > 0:
-        # Preenche a tela com a cor de fundo
-        tela.blit(imagem_fundo, (0, 0))
+    if life > 0:
+        screen.blit(background_image, (0, 0))
+        chicken_group.update()
 
-        # Atualiza o grupo de galinhas
-        grupo_galinhas.update()
+        if random.randint(0, 100) < spawn_probability:
+            chicken = generate_chicken()
+            chicken_group.add(chicken)
 
+        chicken_group.draw(screen)
 
-        # Cria uma nova galinha ocasionalmente
-        if random.randint(0, 100) < probabilidade_spawn:
-            galinha = gerar_galinha()
-            grupo_galinhas.add(galinha)
+        pygame.draw.rect(screen, (0, 0, 0), (0, 250, 1280, 10))
+        pygame.draw.rect(screen, (0, 0, 0), (0, 450, 1280, 10))
+        pygame.draw.rect(screen, (0, 0, 0), (0, 650, 1280, 10))
 
-        # Desenha as galinhas
-        grupo_galinhas.draw(tela)
+        screen.blit(cursor_image, cursor_image_rect)
 
-        # Desenha as linhas horizontais
-        pygame.draw.rect(tela, (0, 0, 0), (0, 250, 1280, 10))
-        pygame.draw.rect(tela, (0, 0, 0), (0, 450, 1280, 10))
-        pygame.draw.rect(tela, (0, 0, 0), (0, 650, 1280, 10))
-
-        # Desenha o cursor
-        tela.blit(imagem_cursor, imagem_cursor_rect)
-
-        # Desenha o HUD
-        tela.blit(imagem_hud, posicao_hud)
+        screen.blit(hud_image, hud_position)
 
         fps = clock.get_fps()
         print(f"FPS: {fps}")
 
-        # Desenha a imagem no canto superior direito
-        tela.blit(pygame.transform.scale(frames_gato[current_frame_gato], (int(frame_width_gato * 4.7), int(frame_height_gato * 4.7))),
-                  (largura - int(frame_width_gato * 4.7) - 150, 0))
+        screen.blit(pygame.transform.scale(frames_cat[current_frame_cat],
+                                           (int(frame_width_cat * 4.7), int(frame_height_cat * 4.7))),
+                    (WIDTH - int(frame_width_cat * 4.7) - 150, 0))
 
+        draw_text()
 
+        cursor_image_rect.center = pygame.mouse.get_pos()
 
-        # Desenha o texto na tela
-        desenhar_texto()
+        current_time = time.time()
 
-        imagem_cursor_rect.center = pygame.mouse.get_pos()
+        if current_time - previous_time > 10:
+            ammunition += 20
+            previous_time = current_time
 
-        tempo_atual = time.time()
+        current_time_chickens = time.time()
+        if current_time_chickens - previous_time_chickens > 20:
+            spawn_probability += 0.5
+            previous_time_chickens = current_time_chickens
 
-
-        # verifica se passou 10seg pra aumentar a munição
-        if tempo_atual - tempo_anterior > 10:
-            municao += 20
-            tempo_anterior = tempo_atual
-
-        tempo_atual_galinhas = time.time()
-        # verifica se passou 10seg pra aumentar o spawn
-        if tempo_atual_galinhas - tempo_anterior_galinhas > 20:
-            probabilidade_spawn += 0.5
-            tempo_anterior_galinhas = tempo_atual_galinhas
-
-        # Atualiza a animação do gato
-        frame_change_counter_gato += 1
-        if frame_change_counter_gato >= frame_change_threshold_gato:
-            current_frame_gato = (current_frame_gato + 1) % 4
-            frame_change_counter_gato = 0
+        frame_change_counter_cat += 1
+        if frame_change_counter_cat >= frame_change_threshold_cat:
+            current_frame_cat = (current_frame_cat + 1) % 4
+            frame_change_counter_cat = 0
 
     else:
-        tela.fill((0, 0, 0))
-        game_over_text = fonte.render("GameOver", True, (255, 255, 255))
+        screen.fill((0, 0, 0))
+        game_over_text = font.render("GameOver", True, (255, 255, 255))
 
-        # Calcula a posição para centralizar o texto "GameOver"
-        x_game_over = (largura - game_over_text.get_width()) // 2
-        y_game_over = (altura - game_over_text.get_height()) // 2
+        x_game_over = (WIDTH - game_over_text.get_width()) // 2
+        y_game_over = (HEIGHT - game_over_text.get_height()) // 2
 
-        tela.blit(game_over_text, (x_game_over, y_game_over))
+        screen.blit(game_over_text, (x_game_over, y_game_over))
 
-        # Adiciona texto "Pressione R para reiniciar" abaixo do "GameOver"
-        reiniciar_text = fonte.render("Pressione R para reiniciar", True, (255, 255, 255))
+        restart_text = font.render("Press R to restart", True, (255, 255, 255))
 
-        # Calcula a posição para centralizar o texto "Pressione R para reiniciar"
-        x_reiniciar = (largura - reiniciar_text.get_width()) // 2
-        y_reiniciar = y_game_over + game_over_text.get_height() + 20  # Ajuste conforme necessário para a distância
+        x_restart = (WIDTH - restart_text.get_width()) // 2
+        y_restart = y_game_over + game_over_text.get_height() + 20
 
-        tela.blit(reiniciar_text, (x_reiniciar, y_reiniciar))
+        screen.blit(restart_text, (x_restart, y_restart))
 
-    # Atualiza a tela
     pygame.display.flip()
-    # Limita a taxa de atualização da tela
     clock.tick(60)
