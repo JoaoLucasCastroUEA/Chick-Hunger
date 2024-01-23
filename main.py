@@ -1,7 +1,7 @@
-import pygame
 import sys
 import random
 import time
+import pygame
 
 pygame.init()
 
@@ -40,7 +40,7 @@ frame_change_counter_gato = 0
 frame_change_threshold_gato = 13
 
 # Carrega a imagem do cursor
-imagem_cursor_original = pygame.image.load('Assets/mira.png')
+imagem_cursor_original = pygame.image.load('Assets/mira_decente.png')
 tamanho_novo_cursor = (40, 40)  # Defina o tamanho desejado para o cursor
 imagem_cursor = pygame.transform.scale(imagem_cursor_original, tamanho_novo_cursor)
 
@@ -48,7 +48,7 @@ imagem_cursor_rect = imagem_cursor.get_rect()
 pygame.mouse.set_visible(False)  # Torna o cursor padrão invisível
 
 # Carrega a imagem do HUD
-imagem_hud_original = pygame.image.load('Assets/estilingue_1.png')
+imagem_hud_original = pygame.image.load('Assets/estilingue_1_copia.png')
 largura_hud_original, altura_hud_original = imagem_hud_original.get_size()
 
 # Ajusta o tamanho da imagem do HUD mantendo a proporção original
@@ -85,8 +85,14 @@ game_over = 'Game Over'
 tempo_anterior = time.time()
 tempo_atual = time.time()
 
+# Inicializa o tempo de spawn das galinhas
+tempo_atual_galinhas = time.time()
+tempo_anterior_galinhas = time.time()
+
 # Grupo de sprites para as galinhas
 grupo_galinhas = pygame.sprite.Group()
+
+probabilidade_spawn = 1
 
 # Classe para representar as galinhas
 class Galinha(pygame.sprite.Sprite):
@@ -112,9 +118,7 @@ class Galinha(pygame.sprite.Sprite):
         if (self.rect.y > 600):
             global vida
             vida -= 1
-            print('perdeu')
             self.kill()
-        print(self.rect.x)
         if self.velocidade < 0:
             self.image = pygame.transform.flip(self.frames[self.frame_atual], True, False)
         else:
@@ -125,15 +129,21 @@ class Galinha(pygame.sprite.Sprite):
             self.frame_atual = (self.frame_atual + 1) % len(self.frames)
             self.tempo_anterior = tempo_atual
 
+
 def desenhar_texto():
     municao_texto = fonte.render(f"Munição: {municao}", True, (255, 255, 255))
-    tela.blit(municao_texto, (largura - 200, altura - 50))
+
+    # Ajusta as coordenadas para posicionar o texto ao lado do estilingue
+    x_municao = posicao_hud[0] + nova_largura_hud + 10
+    y_municao = posicao_hud[1] + 20  # Ajuste este valor conforme necessário para descer o texto
+    tela.blit(municao_texto, (x_municao, y_municao))
 
     pontuacao_texto = fonte.render(f"Pontuação: {pontuacao}", True, (255, 255, 255))
     tela.blit(pontuacao_texto, (largura - 1200, altura - 680))
 
     vida_texto = fonte.render(f"Vida: {vida}", True, (255, 255, 255))
     tela.blit(vida_texto, (largura - 1200, altura - 630))
+
 
 # Função para gerar galinhas
 def gerar_galinha():
@@ -156,9 +166,10 @@ def verificar_clique_galinha(posicao):
     galinhas_clicadas = [galinha for galinha in grupo_galinhas if galinha.rect.collidepoint(posicao)]
 
     for galinha in galinhas_clicadas:
-        print("Você clicou em uma galinha!")
+        if municao == 0:
+            break
         galinha.kill()  # Remove a galinha do grupo
-        pontuacao += 1
+        pontuacao += 1 # Aumenta a Pontuação
         municao -= 1  # Diminui o valor do texto
 
 
@@ -176,6 +187,21 @@ while True:
             if municao > 0:
                 verificar_clique_galinha(event.pos)
 
+        if event.type == pygame.KEYDOWN:
+
+            if event.key == pygame.K_r:
+                if vida <= 0:
+                    vida = 3
+                    municao = 10
+                    probabilidade_spawn = 1
+                    pontuacao = 0
+                    tempo_anterior_galinhas = time.time()
+                    tempo_atual_galinhas = time.time()
+                    tempo_anterior = time.time()
+                    tempo_atual =  time.time()
+                    for galinha in grupo_galinhas:
+                        galinha.kill()
+
     if vida > 0:
         # Preenche a tela com a cor de fundo
         tela.blit(imagem_fundo, (0, 0))
@@ -185,12 +211,17 @@ while True:
 
 
         # Cria uma nova galinha ocasionalmente
-        if random.randint(0, 100) < 1:
+        if random.randint(0, 100) < probabilidade_spawn:
             galinha = gerar_galinha()
             grupo_galinhas.add(galinha)
 
         # Desenha as galinhas
         grupo_galinhas.draw(tela)
+
+        # Desenha as linhas horizontais
+        pygame.draw.rect(tela, (0, 0, 0), (0, 250, 1280, 10))
+        pygame.draw.rect(tela, (0, 0, 0), (0, 450, 1280, 10))
+        pygame.draw.rect(tela, (0, 0, 0), (0, 650, 1280, 10))
 
         # Desenha o cursor
         tela.blit(imagem_cursor, imagem_cursor_rect)
@@ -204,6 +235,9 @@ while True:
         # Desenha a imagem no canto superior direito
         tela.blit(pygame.transform.scale(frames_gato[current_frame_gato], (int(frame_width_gato * 4.7), int(frame_height_gato * 4.7))),
                   (largura - int(frame_width_gato * 4.7) - 150, 0))
+
+
+
         # Desenha o texto na tela
         desenhar_texto()
 
@@ -214,13 +248,14 @@ while True:
 
         # verifica se passou 10seg pra aumentar a munição
         if tempo_atual - tempo_anterior > 10:
-            municao += 10
+            municao += 20
             tempo_anterior = tempo_atual
 
-        # Desenha as linhas horizontais
-        pygame.draw.rect(tela, (0, 0, 0), (0, 250, 1280, 10))
-        pygame.draw.rect(tela, (0, 0, 0), (0, 450, 1280, 10))
-        pygame.draw.rect(tela, (0, 0, 0), (0, 650, 1280, 10))
+        tempo_atual_galinhas = time.time()
+        # verifica se passou 10seg pra aumentar o spawn
+        if tempo_atual_galinhas - tempo_anterior_galinhas > 20:
+            probabilidade_spawn += 0.5
+            tempo_anterior_galinhas = tempo_atual_galinhas
 
         # Atualiza a animação do gato
         frame_change_counter_gato += 1
@@ -228,12 +263,24 @@ while True:
             current_frame_gato = (current_frame_gato + 1) % 4
             frame_change_counter_gato = 0
 
-
-# Se a vida acabar entrar na tela de gameover
     else:
         tela.fill((0, 0, 0))
-        game_over_text = fonte.render(f"GameOver", True, (255, 255, 255))
-        tela.blit(game_over_text, (200,200))
+        game_over_text = fonte.render("GameOver", True, (255, 255, 255))
+
+        # Calcula a posição para centralizar o texto "GameOver"
+        x_game_over = (largura - game_over_text.get_width()) // 2
+        y_game_over = (altura - game_over_text.get_height()) // 2
+
+        tela.blit(game_over_text, (x_game_over, y_game_over))
+
+        # Adiciona texto "Pressione R para reiniciar" abaixo do "GameOver"
+        reiniciar_text = fonte.render("Pressione R para reiniciar", True, (255, 255, 255))
+
+        # Calcula a posição para centralizar o texto "Pressione R para reiniciar"
+        x_reiniciar = (largura - reiniciar_text.get_width()) // 2
+        y_reiniciar = y_game_over + game_over_text.get_height() + 20  # Ajuste conforme necessário para a distância
+
+        tela.blit(reiniciar_text, (x_reiniciar, y_reiniciar))
 
     # Atualiza a tela
     pygame.display.flip()
